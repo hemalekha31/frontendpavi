@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Pavis Lab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .top-banner {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .nav-bar {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+        .checkout-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .checkout-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .checkout-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .checkout-container input[type="text"],
+        .checkout-container input[type="tel"],
+        .checkout-container textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .checkout-container textarea {
+            resize: vertical;
+        }
+        .pay-btn, .confirm-btn, .checkout-container button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .pay-btn:hover, .confirm-btn:hover, .checkout-container button:hover {
+            background-color: #0056b3;
+        }
+        .checkout-container h3 {
+            text-align: center;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .checkout-container #totalAmount {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-banner">
+        Secure Your Order - Complete Checkout 🛍️
+    </div>
+
+    <nav class="nav-bar">
+        <a href="index.html" class="back-btn"><i class="fa fa-arrow-left"></i> Back</a>
+    </nav>
+
+    <div class="checkout-container">
+        <h2>Checkout</h2>
+        <form action="order_confirmation.html" method="GET">
+            <label for="name">Full Name:</label>
+            <input type="text" id="custName" name="name" required>
+
+            <label for="address">Shipping Address:</label>
+            <textarea id="address" name="address" required></textarea>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <h2 id="totalAmount">Total: Rs. 0/-</h2>
+            <h3>Scan to Pay</h3>
+            <img id="qrCode" src="img/qr/final.jpg" alt="Scan QR Code to Pay" style="display:block; margin: 10px auto; max-width: 200px;">
+            <label for="txn_id">Enter Transaction ID:</label>
+            <input type="text" id="txn_id" name="txn_id_param" placeholder="Paste your Paytm transaction ID">
+            <button type="button" onclick="submitPayment()">Submit</button>
+
+            <input type="hidden" id="total-hidden" name="total">
+            <button type="button" class="confirm-btn" disabled onclick="placeOrder()">Proceed to Confirm Order ✅</button>
+
+        </form>
+    </div>
+    
+    <script>
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            // Retrieve total amount from localStorage
+            let totalAmount = parseFloat(localStorage.getItem("totalAmount")) || 0;
+            
+            if (totalAmount > 0) {
+                document.getElementById("totalAmount").innerText = `Total: Rs. ${totalAmount.toFixed(2)}/-`;
+                document.getElementById("total-hidden").value = totalAmount;
+            } else {
+                console.warn("Total amount missing or invalid.");
+            }
+        
+            // Retrieve checkout data
+            let checkoutData = JSON.parse(localStorage.getItem("checkoutData")) || {};
+        
+            // Auto-fill product details if available
+            if (checkoutData.name && checkoutData.price && checkoutData.quantity && checkoutData.total) {
+                document.getElementById("totalAmount").innerText = `Total: Rs. ${checkoutData.total.toFixed(2)}/-`;
+                document.getElementById("total-hidden").value = checkoutData.total;
+            }
+        
+            // Enable Confirm Order button only when a transaction ID is entered
+            let txnInput = document.getElementById("txn_id");
+            let confirmBtn = document.querySelector(".confirm-btn");
+        
+            if (txnInput && confirmBtn) {
+                txnInput.addEventListener("input", function () {
+                    confirmBtn.disabled = this.value.trim() === "";
+                });
+            } else {
+                console.error("Transaction input or Confirm button missing!");
+            }
+        });
+        
+        // ✅ Submit Payment
+        function submitPayment() {
+            const txnId = document.getElementById("txn_id").value.trim();
+            if (txnId) {
+                alert(`✅ Payment submitted! Transaction ID: ${txnId}`);
+                document.querySelector(".confirm-btn").disabled = false;
+            } else {
+                alert("⚠️ Please enter your Transaction ID.");
+            }
+        }
+        
+        async function placeOrder() {
+    const fullName = document.getElementById("custName")?.value || "";
+    const address = document.getElementById("address")?.value || "";
+    const phone = document.getElementById("phone")?.value || "";
+    const totalAmount = document.getElementById("total-hidden")?.value || "";
+    const transactionId = document.getElementById("txn_id")?.value || "";
+
+    if (!fullName || !totalAmount || !transactionId) {
+        alert("⚠ Order details are incomplete. Please fill in all fields.");
+        return;
+    }
+
+    const orderData = { full_name: fullName, address, phone, total_amount: totalAmount, transaction_id: transactionId };
+
+    try {
+        const response = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData)
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            // ✅ Pass Order ID in URL
+            window.location.href = `order_confirmation.html?name=${encodeURIComponent(fullName)}&address=${encodeURIComponent(address)}&phone=${encodeURIComponent(phone)}&total=${encodeURIComponent(totalAmount)}&txn_id_param=${encodeURIComponent(transactionId)}&order_id=${data.orderid}`;
+        } else {
+            alert("❌ Failed to place order. Please try again.");
+        }
+    } catch (error) {
+        console.error("Error placing order:", error);
+        alert("❌ Server error. Please try again later.");
+    }
+}
+
+        </script>
+        
+</body>
+</html>

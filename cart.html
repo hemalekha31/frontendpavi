@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - Pavis Lab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+
+    <div class="top-banner">
+        Your Shopping Cart 🛒
+    </div>
+
+    <nav class="nav-bar">
+        <div class="left-icons">
+            <a href="index.html"><i class="fa fa-home"></i></a>
+        </div>
+        <div class="logo-container">
+            <img src="img/logo.jpg" alt="Logo" class="logo">
+        </div>
+        <div class="social-icons">
+            <a href="cart.html"><i class="fa fa-shopping-cart"></i></a>
+        </div>
+    </nav>
+
+    <div class="cart-container">
+        <h2>Your Cart 🛒</h2>
+        <div id="cart-items"></div>
+        <div class="cart-summary">
+            <h3>Total Amount: <span id="total-amount">Rs. 0</span></h3>
+            <button id="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
+            <h3>Order Summary:</h3>
+<div id="checkout-products"></div>
+
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2025 PAVI'S LAB | All Rights Reserved.</p>
+    </footer>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    let totalAmount = localStorage.getItem("totalAmount");
+
+    // ✅ Convert to float & validate
+    totalAmount = parseFloat(totalAmount);
+    
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+        console.warn("Total amount missing! Setting to 0.");
+        totalAmount = 0;
+    }
+
+    // ✅ Update checkout page display
+    document.getElementById("totalAmount").innerText = `Total: Rs. ${totalAmount.toFixed(2)}/-`;
+    document.getElementById("total-hidden").value = totalAmount;
+
+    // ✅ Retrieve and display cart items
+    let checkoutData = JSON.parse(localStorage.getItem("checkoutData")) || [];
+
+    if (checkoutData.length > 0) {
+        let productDetails = checkoutData.map(item => `
+            <p><strong>${item.name}</strong> - Rs. ${item.price} x ${item.quantity} = Rs. ${(item.price * item.quantity).toFixed(2)}</p>
+        `).join("");
+        document.getElementById("checkout-products").innerHTML = productDetails;
+    } else {
+        document.getElementById("checkout-products").innerHTML = "<p>No items found!</p>";
+    }
+
+    // ✅ Enable Confirm Order button only when Transaction ID is entered
+    document.getElementById("txn_id").addEventListener("input", function () {
+        document.querySelector(".confirm-btn").disabled = this.value.trim() === "";
+    });
+
+    // ✅ Payment submission function
+    window.submitPayment = function() {
+        const txnId = document.getElementById("txn_id").value.trim();
+        if (txnId !== "") {
+            alert(`Payment submitted with Transaction ID: ${txnId}. You can now confirm your order.`);
+            document.querySelector(".confirm-btn").disabled = false; // Enable confirm button after "payment"
+        } else {
+            alert("Please enter your Transaction ID.");
+        }
+    };
+});
+
+    </script>
+
+    <script src="cart.js"></script>
+</body>
+</html>
